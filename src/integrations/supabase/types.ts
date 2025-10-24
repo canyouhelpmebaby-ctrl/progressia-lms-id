@@ -79,6 +79,216 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_goals: {
+        Row: {
+          created_at: string
+          current_value: number
+          description: string | null
+          end_date: string
+          goal_type: string
+          id: string
+          start_date: string
+          status: string
+          target_value: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_value?: number
+          description?: string | null
+          end_date: string
+          goal_type: string
+          id?: string
+          start_date?: string
+          status?: string
+          target_value?: number
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_value?: number
+          description?: string | null
+          end_date?: string
+          goal_type?: string
+          id?: string
+          start_date?: string
+          status?: string
+          target_value?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      learning_materials: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          description: string | null
+          file_path: string | null
+          file_size: number | null
+          file_type: string | null
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          description?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          description?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_materials_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_paths: {
+        Row: {
+          course_order: string[]
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          course_order: string[]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          course_order?: string[]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      learning_records: {
+        Row: {
+          activity_description: string | null
+          activity_type: string
+          course_id: string | null
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          record_date: string
+          user_id: string
+        }
+        Insert: {
+          activity_description?: string | null
+          activity_type: string
+          course_id?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          record_date?: string
+          user_id: string
+        }
+        Update: {
+          activity_description?: string | null
+          activity_type?: string
+          course_id?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          record_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_records_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_sessions: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          duration_minutes: number
+          id: string
+          notes: string | null
+          session_date: string
+          session_type: string
+          user_id: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          duration_minutes: number
+          id?: string
+          notes?: string | null
+          session_date?: string
+          session_type: string
+          user_id: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          session_date?: string
+          session_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_sessions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -127,6 +337,36 @@ export type Database = {
           full_name?: string
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_rewards: {
+        Row: {
+          badge_name: string
+          badge_type: string
+          description: string | null
+          earned_at: string
+          id: string
+          points: number
+          user_id: string
+        }
+        Insert: {
+          badge_name: string
+          badge_type: string
+          description?: string | null
+          earned_at?: string
+          id?: string
+          points?: number
+          user_id: string
+        }
+        Update: {
+          badge_name?: string
+          badge_type?: string
+          description?: string | null
+          earned_at?: string
+          id?: string
+          points?: number
+          user_id?: string
         }
         Relationships: []
       }

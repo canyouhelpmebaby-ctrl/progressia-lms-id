@@ -1,10 +1,16 @@
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Bell, LogOut, GraduationCap } from 'lucide-react';
+import { BookOpen, Bell, LogOut, GraduationCap, Target, Clock, Calendar, FileText, Award, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export const Navbar = () => {
   const { user, isAdmin, signOut } = useAuth();
@@ -59,6 +65,47 @@ export const Navbar = () => {
                 Kursus
               </Button>
             </Link>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="gap-2">
+                  Fitur
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link to="/goals" className="cursor-pointer">
+                    <Target className="h-4 w-4 mr-2" />
+                    Target & To-Do
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/timer" className="cursor-pointer">
+                    <Clock className="h-4 w-4 mr-2" />
+                    Timer Belajar
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/records" className="cursor-pointer">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Catatan & Kalender
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/materials" className="cursor-pointer">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Materi
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/rewards" className="cursor-pointer">
+                    <Award className="h-4 w-4 mr-2" />
+                    Penghargaan
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {isAdmin && (
               <Link to="/admin/users">

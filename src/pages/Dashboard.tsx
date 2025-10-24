@@ -4,8 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, TrendingUp, Award } from 'lucide-react';
+import { BookOpen, TrendingUp, Award, Target, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -32,6 +35,43 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  const { data: goals } = useQuery({
+    queryKey: ['active-goals', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('learning_goals')
+        .select('*')
+        .eq('user_id', user!.id)
+        .eq('status', 'active')
+        .limit(3);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: recentSessions } = useQuery({
+    queryKey: ['recent-sessions', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('learning_sessions')
+        .select('*')
+        .eq('user_id', user!.id)
+        .order('session_date', { ascending: false })
+        .limit(7);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const chartData = recentSessions?.map((session: any) => ({
+    date: new Date(session.session_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+    minutes: session.duration_minutes,
+  })).reverse() || [];
+
   const getStatusBadge = (status: string) => {
     const statusMap = {
       not_started: { label: 'Belum Mulai', variant: 'secondary' as const },
@@ -57,6 +97,7 @@ export default function Dashboard() {
 
   const completedCourses = courseProgress?.filter((cp: any) => cp.status === 'completed').length || 0;
   const inProgressCourses = courseProgress?.filter((cp: any) => cp.status === 'in_progress').length || 0;
+  const totalStudyTime = recentSessions?.reduce((acc: number, session: any) => acc + session.duration_minutes, 0) || 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,7 +112,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3 mb-8">
+        <div className="grid gap-6 md:grid-cols-4 mb-8">
           <Card className="bg-gradient-card border-none shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Progress</CardTitle>
@@ -108,6 +149,77 @@ export default function Dashboard() {
               <p className="text-xs text-muted-foreground mt-1">
                 Kursus yang telah diselesaikan
               </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-card border-none shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Waktu Belajar</CardTitle>
+              <Clock className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-primary">{totalStudyTime}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Menit minggu ini
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 mb-8">
+          <Card className="shadow-md">
+            <CardHeader>
+              <CardTitle>Grafik Waktu Belajar</CardTitle>
+              <CardDescription>7 hari terakhir</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="minutes" stroke="hsl(var(--primary))" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">Belum ada data</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-md">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Target Aktif</CardTitle>
+                  <CardDescription>Target yang sedang berjalan</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/goals">Lihat Semua</Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {goals && goals.length > 0 ? (
+                <div className="space-y-3">
+                  {goals.slice(0, 3).map((goal: any) => (
+                    <div key={goal.id} className="p-3 rounded-lg bg-gradient-card">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-sm">{goal.title}</span>
+                        <Target className="h-4 w-4 text-primary" />
+                      </div>
+                      <Progress value={(goal.current_value / goal.target_value) * 100} className="h-2" />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {goal.current_value} / {goal.target_value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">Belum ada target aktif</p>
+              )}
             </CardContent>
           </Card>
         </div>

@@ -10,6 +10,11 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Courses from "./pages/Courses";
 import Notifications from "./pages/Notifications";
+import Goals from "./pages/Goals";
+import LearningTimer from "./pages/LearningTimer";
+import LearningRecords from "./pages/LearningRecords";
+import Materials from "./pages/Materials";
+import Rewards from "./pages/Rewards";
 import AdminUsers from "./pages/AdminUsers";
 import AdminCourses from "./pages/AdminCourses";
 import NotFound from "./pages/NotFound";
@@ -47,6 +52,46 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Notifications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/goals"
+              element={
+                <ProtectedRoute>
+                  <Goals />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/timer"
+              element={
+                <ProtectedRoute>
+                  <LearningTimer />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/records"
+              element={
+                <ProtectedRoute>
+                  <LearningRecords />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/materials"
+              element={
+                <ProtectedRoute>
+                  <Materials />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/rewards"
+              element={
+                <ProtectedRoute>
+                  <Rewards />
                 </ProtectedRoute>
               }
             />
