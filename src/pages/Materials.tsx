@@ -55,9 +55,32 @@ export default function Materials() {
     mutationFn: async () => {
       if (!selectedFile) throw new Error('No file selected');
 
-      const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      // Security: Validate file type (whitelist approach)
+      const ALLOWED_TYPES = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain'
+      ];
+
+      if (!ALLOWED_TYPES.includes(selectedFile.type)) {
+        throw new Error('File type not allowed. Only PDF, Word, PowerPoint, Excel, and text files are accepted.');
+      }
+
+      // Security: Validate file size (10MB limit)
+      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+      if (selectedFile.size > MAX_FILE_SIZE) {
+        throw new Error('File too large. Maximum size is 10MB.');
+      }
+
+      // Security: Sanitize filename to prevent path traversal
+      const fileExt = selectedFile.name.split('.').pop()?.toLowerCase();
+      const sanitizedFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = sanitizedFileName;
 
       const { error: uploadError } = await supabase.storage
         .from('learning-materials')
@@ -86,8 +109,8 @@ export default function Materials() {
       setFormData({ title: '', description: '', course_id: '' });
       setSelectedFile(null);
     },
-    onError: () => {
-      toast.error('Gagal mengunggah materi');
+    onError: (error: Error) => {
+      toast.error(error.message || 'Gagal mengunggah materi');
     },
   });
 
