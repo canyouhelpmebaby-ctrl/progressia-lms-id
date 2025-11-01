@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { GraduationCap } from 'lucide-react';
 import heroImage from '@/assets/hero-education.jpg';
+import logoImage from '@/assets/logo.jpg';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -77,9 +78,7 @@ export default function Auth() {
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center mb-4 lg:hidden">
-              <div className="bg-gradient-primary rounded-lg p-3">
-                <GraduationCap className="h-8 w-8 text-primary-foreground" />
-              </div>
+              <img src={logoImage} alt="Progressia Logo" className="h-16 w-16 object-contain rounded-lg" />
             </div>
             <CardTitle className="text-3xl font-bold text-center">Progressia</CardTitle>
             <CardDescription className="text-center">
