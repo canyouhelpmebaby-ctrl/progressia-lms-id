@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { BookOpen, Bell, LogOut, GraduationCap, Target, Clock, Calendar, FileText, Award, ChevronDown } from 'lucide-react';
+import logoImage from '@/assets/logo.jpg';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,9 +38,7 @@ export const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="bg-gradient-primary rounded-lg p-2">
-              <GraduationCap className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src={logoImage} alt="Progressia Logo" className="h-10 w-10 object-contain rounded-lg" />
             <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
               Progressia
             </span>
