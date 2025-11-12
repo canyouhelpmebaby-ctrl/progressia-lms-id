@@ -3,9 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, Shield, UserCircle } from 'lucide-react';
+import { Users, Shield, UserCircle, Search, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { useState } from 'react';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 import {
   Table,
   TableBody,
@@ -17,6 +21,7 @@ import {
 
 export default function AdminUsers() {
   const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState('');
 
   const { data: profiles, isLoading } = useQuery({
     queryKey: ['admin-profiles'],
@@ -69,6 +74,14 @@ export default function AdminUsers() {
     return roles?.some((r) => r.role === 'admin') || false;
   };
 
+  const filteredProfiles = profiles?.filter((profile: any) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      profile.full_name?.toLowerCase().includes(searchLower) ||
+      profile.email?.toLowerCase().includes(searchLower)
+    );
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -84,18 +97,31 @@ export default function AdminUsers() {
 
         <Card className="shadow-md">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Daftar Pengguna
-            </CardTitle>
-            <CardDescription>
-              Total {profiles?.length || 0} pengguna terdaftar
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Daftar Pengguna
+                </CardTitle>
+                <CardDescription>
+                  Total {profiles?.length || 0} pengguna terdaftar
+                </CardDescription>
+              </div>
+              <div className="relative w-72">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Cari nama atau email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <p className="text-center text-muted-foreground py-8">Memuat data...</p>
-            ) : profiles && profiles.length > 0 ? (
+            ) : filteredProfiles && filteredProfiles.length > 0 ? (
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
@@ -103,11 +129,12 @@ export default function AdminUsers() {
                       <TableHead>Nama</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Peran</TableHead>
+                      <TableHead>Tanggal Bergabung</TableHead>
                       <TableHead className="text-right">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {profiles.map((profile: any) => {
+                    {filteredProfiles.map((profile: any) => {
                       const isAdmin = userIsAdmin(profile.user_roles);
 
                       return (
@@ -131,6 +158,12 @@ export default function AdminUsers() {
                               )}
                             </Badge>
                           </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                              <Calendar className="h-4 w-4" />
+                              {format(new Date(profile.created_at), 'dd MMM yyyy', { locale: id })}
+                            </div>
+                          </TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant={isAdmin ? 'destructive' : 'default'}
@@ -151,6 +184,13 @@ export default function AdminUsers() {
                     })}
                   </TableBody>
                 </Table>
+              </div>
+            ) : searchTerm ? (
+              <div className="text-center py-12">
+                <Search className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground text-lg">
+                  Tidak ada pengguna yang cocok dengan pencarian "{searchTerm}"
+                </p>
               </div>
             ) : (
               <div className="text-center py-12">
