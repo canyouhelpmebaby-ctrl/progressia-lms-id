@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, Shield, UserCircle, Search, Calendar, Eye } from 'lucide-react';
+import { Users, Shield, UserCircle, Search, Calendar, Eye, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
+import { exportUsersToCSV } from '@/lib/export-utils';
 import {
   Table,
   TableBody,
@@ -24,6 +25,7 @@ export default function AdminUsers() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
 
   const { data: profiles, isLoading } = useQuery({
     queryKey: ['admin-profiles'],
@@ -76,6 +78,86 @@ export default function AdminUsers() {
     return roles?.some((r) => r.role === 'admin') || false;
   };
 
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      toast.info('Mengumpulkan data pengguna...');
+
+      // Fetch detailed data for all users
+      const { data: allProfiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          user_roles (
+            role
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (profilesError) throw profilesError;
+
+      // Fetch additional data for each user
+      const usersWithDetails = await Promise.all(
+        (allProfiles || []).map(async (profile) => {
+          const [courseProgress, sessions, records, rewards, goals] = await Promise.all([
+            supabase
+              .from('course_progress')
+              .select('*, courses(title, total_modules)')
+              .eq('user_id', profile.id),
+            supabase
+              .from('learning_sessions')
+              .select('duration_minutes')
+              .eq('user_id', profile.id),
+            supabase
+              .from('learning_records')
+              .select('*')
+              .eq('user_id', profile.id),
+            supabase
+              .from('user_rewards')
+              .select('points')
+              .eq('user_id', profile.id),
+            supabase
+              .from('learning_goals')
+              .select('*')
+              .eq('user_id', profile.id),
+          ]);
+
+          const totalMinutes = sessions.data?.reduce((sum, s) => sum + (s.duration_minutes || 0), 0) || 0;
+          const totalPoints = rewards.data?.reduce((sum, r) => sum + (r.points || 0), 0) || 0;
+          const completedCourses = courseProgress.data?.filter(cp => cp.status === 'completed').length || 0;
+          const activeCourses = courseProgress.data?.filter(cp => cp.status === 'in_progress').length || 0;
+          const activeGoals = goals.data?.filter(g => g.status === 'active').length || 0;
+          const completedGoals = goals.data?.filter(g => g.status === 'completed').length || 0;
+
+          return {
+            profile,
+            stats: {
+              totalCourses: courseProgress.data?.length || 0,
+              completedCourses,
+              activeCourses,
+              totalLearningMinutes: totalMinutes,
+              totalLearningHours: (totalMinutes / 60).toFixed(2),
+              totalSessions: sessions.data?.length || 0,
+              totalRecords: records.data?.length || 0,
+              totalPoints,
+              totalRewards: rewards.data?.length || 0,
+              activeGoals,
+              completedGoals,
+            },
+          };
+        })
+      );
+
+      exportUsersToCSV(usersWithDetails);
+      toast.success('Data berhasil diexport!');
+    } catch (error: any) {
+      console.error('Export error:', error);
+      toast.error('Gagal export data: ' + error.message);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const filteredProfiles = profiles?.filter((profile: any) => {
     const searchLower = searchTerm.toLowerCase();
     return (
@@ -88,13 +170,23 @@ export default function AdminUsers() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
-            Manajemen Pengguna
-          </h1>
-          <p className="text-muted-foreground">
-            Kelola pengguna dan atur peran admin
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+              Manajemen Pengguna
+            </h1>
+            <p className="text-muted-foreground">
+              Kelola pengguna dan atur peran admin
+            </p>
+          </div>
+          <Button
+            onClick={handleExport}
+            disabled={isExporting || !profiles || profiles.length === 0}
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            {isExporting ? 'Mengexport...' : 'Export ke CSV'}
+          </Button>
         </div>
 
         <Card className="shadow-md">

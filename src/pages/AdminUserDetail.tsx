@@ -14,7 +14,8 @@ import {
   Calendar,
   Award,
   TrendingUp,
-  Shield
+  Shield,
+  Download
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -29,10 +30,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { exportUserDetailToCSV } from '@/lib/export-utils';
+import { toast } from 'sonner';
+import { useState } from 'react';
 
 export default function AdminUserDetail() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const [isExporting, setIsExporting] = useState(false);
 
   // Fetch user profile with roles
   const { data: profile, isLoading: profileLoading } = useQuery({
@@ -159,6 +164,26 @@ export default function AdminUserDetail() {
   const totalLearningMinutes = learningSessions?.reduce((sum, session) => sum + (session.duration_minutes || 0), 0) || 0;
   const totalPoints = rewards?.reduce((sum, reward) => sum + (reward.points || 0), 0) || 0;
 
+  const handleExportDetail = () => {
+    try {
+      setIsExporting(true);
+      exportUserDetailToCSV(
+        profile,
+        courseProgress || [],
+        learningSessions || [],
+        learningRecords || [],
+        rewards || [],
+        goals || []
+      );
+      toast.success('Data detail pengguna berhasil diexport!');
+    } catch (error: any) {
+      console.error('Export error:', error);
+      toast.error('Gagal export data: ' + error.message);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -185,14 +210,23 @@ export default function AdminUserDetail() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/admin/users')}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Kembali ke Daftar Pengguna
-        </Button>
+        <div className="flex items-center justify-between mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/admin/users')}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Kembali ke Daftar Pengguna
+          </Button>
+          <Button
+            onClick={handleExportDetail}
+            disabled={isExporting}
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            {isExporting ? 'Mengexport...' : 'Export Detail ke CSV'}
+          </Button>
+        </div>
 
         {/* User Info Header */}
         <Card className="mb-6 shadow-md">
