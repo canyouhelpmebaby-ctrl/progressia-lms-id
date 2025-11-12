@@ -3,13 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, Shield, UserCircle, Search, Calendar } from 'lucide-react';
+import { Users, Shield, UserCircle, Search, Calendar, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -21,6 +22,7 @@ import {
 
 export default function AdminUsers() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: profiles, isLoading } = useQuery({
@@ -165,19 +167,29 @@ export default function AdminUsers() {
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant={isAdmin ? 'destructive' : 'default'}
-                              size="sm"
-                              onClick={() =>
-                                toggleAdminMutation.mutate({
-                                  userId: profile.id,
-                                  isAdmin,
-                                })
-                              }
-                              disabled={toggleAdminMutation.isPending}
-                            >
-                              {isAdmin ? 'Hapus Admin' : 'Jadikan Admin'}
-                            </Button>
+                            <div className="flex items-center gap-2 justify-end">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/admin/users/${profile.id}`)}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                Detail
+                              </Button>
+                              <Button
+                                variant={isAdmin ? 'destructive' : 'default'}
+                                size="sm"
+                                onClick={() =>
+                                  toggleAdminMutation.mutate({
+                                    userId: profile.id,
+                                    isAdmin,
+                                  })
+                                }
+                                disabled={toggleAdminMutation.isPending}
+                              >
+                                {isAdmin ? 'Hapus Admin' : 'Jadikan Admin'}
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

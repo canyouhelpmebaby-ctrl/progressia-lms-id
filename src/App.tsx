@@ -16,6 +16,7 @@ import LearningRecords from "./pages/LearningRecords";
 import Materials from "./pages/Materials";
 import Rewards from "./pages/Rewards";
 import AdminUsers from "./pages/AdminUsers";
+import AdminUserDetail from "./pages/AdminUserDetail";
 import AdminCourses from "./pages/AdminCourses";
 import NotFound from "./pages/NotFound";
 
@@ -100,6 +101,14 @@ const App = () => (
               element={
                 <ProtectedRoute requireAdmin>
                   <AdminUsers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users/:userId"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminUserDetail />
                 </ProtectedRoute>
               }
             />
