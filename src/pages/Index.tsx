@@ -81,7 +81,7 @@ export default function Index() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gradient-card">
+      <section className="py-16 bg-stats-bg">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
