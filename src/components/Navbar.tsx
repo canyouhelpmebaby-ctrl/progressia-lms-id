@@ -67,13 +67,14 @@ export const Navbar = () => {
                 <DropdownMenuItem asChild>
                   <Link to="/goals" className="cursor-pointer">
                     <Target className="h-4 w-4 mr-2" />
-                    Target & To-Do
+                    Target Pembelajaran
+  
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/timer" className="cursor-pointer">
                     <Clock className="h-4 w-4 mr-2" />
-                    Timer Belajar
+                     Waktu Belajar
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
