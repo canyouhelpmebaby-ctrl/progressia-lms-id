@@ -51,7 +51,7 @@ export const Navbar = () => {
                 className="gap-2"
               >
                 <BookOpen className="h-4 w-4" />
-                Dashboard
+                Beranda
               </Button>
             </Link>
 
