@@ -100,7 +100,7 @@ export const Navbar = () => {
 
             {isAdmin && <Link to="/admin/users">
                 <Button variant={isActive('/admin/users') || isActive('/admin/courses') ? 'default' : 'ghost'} className="gap-2">
-                  Admin Panel
+                  Panel Admin
                 </Button>
               </Link>}
 
