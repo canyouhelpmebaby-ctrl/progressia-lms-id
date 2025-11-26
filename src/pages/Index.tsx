@@ -6,6 +6,7 @@ import heroImage from '@/assets/hero-education.jpg';
 import iconLearning from '@/assets/icon-learning.png';
 import iconProgress from '@/assets/icon-progress.png';
 import iconCourses from '@/assets/icon-courses.png';
+import logoProgressia from '@/assets/logo-progressia.png';
 
 export default function Index() {
   return (
@@ -15,9 +16,7 @@ export default function Index() {
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="bg-gradient-primary rounded-lg p-2">
-                <GraduationCap className="h-6 w-6 text-primary-foreground" />
-              </div>
+              <img src={logoProgressia} alt="Progressia Logo" className="h-10 w-10" />
               <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                 Progressia
               </span>
@@ -190,9 +189,7 @@ export default function Index() {
         <div className="container mx-auto px-4">
           <div className="text-center text-muted-foreground">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="bg-gradient-primary rounded-lg p-2">
-                <GraduationCap className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <img src={logoProgressia} alt="Progressia Logo" className="h-8 w-8" />
               <span className="font-bold text-lg bg-gradient-primary bg-clip-text text-transparent">
                 Progressia
               </span>
