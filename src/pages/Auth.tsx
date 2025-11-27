@@ -14,6 +14,7 @@ import logoImage from '@/assets/logo.jpg';
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp, user } = useAuth();
@@ -43,6 +44,12 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      toast.error('Password tidak cocok!');
+      return;
+    }
+    
     setLoading(true);
 
     const { error } = await signUp(email, password, fullName);
@@ -152,6 +159,17 @@ export default function Auth() {
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-confirm-password">Konfirmasi Password</Label>
+                    <Input
+                      id="signup-confirm-password"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       required
                       minLength={6}
                     />
