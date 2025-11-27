@@ -18,6 +18,16 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Table,
   TableBody,
   TableCell,
@@ -29,6 +39,7 @@ import {
 export default function AdminCourses() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<any>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -110,17 +121,34 @@ export default function AdminCourses() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (editingCourse) {
+      // Langsung update jika sedang edit
+      const courseData = {
+        title,
+        description,
+        total_modules: parseInt(totalModules),
+      };
+      updateCourseMutation.mutate({ id: editingCourse.id, data: courseData });
+    } else {
+      // Tampilkan konfirmasi jika tambah baru
+      setOpen(false);
+      setConfirmOpen(true);
+    }
+  };
+
+  const handleConfirmCreate = () => {
     const courseData = {
       title,
       description,
       total_modules: parseInt(totalModules),
     };
+    createCourseMutation.mutate(courseData);
+    setConfirmOpen(false);
+  };
 
-    if (editingCourse) {
-      updateCourseMutation.mutate({ id: editingCourse.id, data: courseData });
-    } else {
-      createCourseMutation.mutate(courseData);
-    }
+  const handleCancelConfirm = () => {
+    setConfirmOpen(false);
+    setOpen(true);
   };
 
   const handleEdit = (course: any) => {
@@ -214,6 +242,34 @@ export default function AdminCourses() {
               </form>
             </DialogContent>
           </Dialog>
+
+          {/* Confirmation Dialog */}
+          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Konfirmasi Tambah Kursus</AlertDialogTitle>
+                <AlertDialogDescription className="space-y-3">
+                  <p>Apakah Anda yakin ingin menambahkan kursus dengan detail berikut?</p>
+                  <div className="bg-muted p-4 rounded-lg space-y-2 text-left">
+                    <p><strong>Judul:</strong> {title}</p>
+                    <p><strong>Deskripsi:</strong> {description || '-'}</p>
+                    <p><strong>Total Modul:</strong> {totalModules}</p>
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={handleCancelConfirm}>
+                  Kembali
+                </AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleConfirmCreate}
+                  disabled={createCourseMutation.isPending}
+                >
+                  Ya, Tambahkan
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         <Card className="shadow-md">
