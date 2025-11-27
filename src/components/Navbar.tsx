@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { BookOpen, Bell, LogOut, GraduationCap, Target, Clock, Calendar, FileText, Award, ChevronDown } from 'lucide-react';
-import logoImage from '@/assets/logo.jpg';
+import logoImage from '@/assets/logo-progressia.png';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
