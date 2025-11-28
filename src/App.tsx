@@ -16,6 +16,7 @@ import LearningTimer from "./pages/LearningTimer";
 import LearningRecords from "./pages/LearningRecords";
 import Materials from "./pages/Materials";
 import Rewards from "./pages/Rewards";
+import Profile from "./pages/Profile";
 import AdminUsers from "./pages/AdminUsers";
 import AdminUserDetail from "./pages/AdminUserDetail";
 import AdminCourses from "./pages/AdminCourses";
@@ -95,6 +96,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Rewards />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />

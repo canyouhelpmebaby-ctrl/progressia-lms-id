@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Bell, LogOut, GraduationCap, Target, Clock, Calendar, FileText, Award, ChevronDown } from 'lucide-react';
+import { BookOpen, Bell, LogOut, GraduationCap, Target, Clock, Calendar, FileText, Award, ChevronDown, User } from 'lucide-react';
 import logoImage from '@/assets/logo-progressia.png';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -114,6 +114,12 @@ export const Navbar = () => {
                 {unreadCount && unreadCount > 0 ? <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-destructive">
                     {unreadCount}
                   </Badge> : null}
+              </Button>
+            </Link>
+
+            <Link to="/profile">
+              <Button variant={isActive('/profile') ? 'default' : 'ghost'} size="icon" title="Profil">
+                <User className="h-4 w-4" />
               </Button>
             </Link>
 
