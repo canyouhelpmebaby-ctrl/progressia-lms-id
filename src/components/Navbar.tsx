@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Bell, LogOut, GraduationCap, Target, Clock, Calendar, FileText, Award, ChevronDown, User } from 'lucide-react';
+import { BookOpen, Bell, LogOut, GraduationCap, Target, Clock, Calendar, FileText, Award, ChevronDown, User, Users, BookMarked } from 'lucide-react';
 import logoImage from '@/assets/logo-progressia.png';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -102,11 +102,33 @@ export const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {isAdmin && <Link to="/admin/users">
-                <Button variant={isActive('/admin/users') || isActive('/admin/courses') ? 'default' : 'ghost'} className="gap-2">
-                  Panel Admin
-                </Button>
-              </Link>}
+            {isAdmin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant={isActive('/admin/users') || isActive('/admin/courses') ? 'default' : 'ghost'} 
+                    className="gap-2"
+                  >
+                    Panel Admin
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-card z-50">
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/users" className="cursor-pointer">
+                      <Users className="h-4 w-4 mr-2" />
+                      Manajemen Pengguna
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/courses" className="cursor-pointer">
+                      <BookMarked className="h-4 w-4 mr-2" />
+                      Manajemen Kursus
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             <Link to="/notifications" className="relative">
               <Button variant={isActive('/notifications') ? 'default' : 'ghost'} size="icon">
