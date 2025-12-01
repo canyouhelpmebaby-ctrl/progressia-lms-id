@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, Plus, Pencil, Trash2 } from 'lucide-react';
+import { BookOpen, Plus, Pencil, Trash2, Image } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -44,6 +45,8 @@ export default function AdminCourses() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [totalModules, setTotalModules] = useState('');
+  const [difficulty, setDifficulty] = useState('');
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
 
   const { data: courses, isLoading } = useQuery({
     queryKey: ['admin-courses'],
@@ -59,7 +62,7 @@ export default function AdminCourses() {
   });
 
   const createCourseMutation = useMutation({
-    mutationFn: async (courseData: { title: string; description: string; total_modules: number }) => {
+    mutationFn: async (courseData: { title: string; description: string; total_modules: number; difficulty?: string; thumbnail_url?: string }) => {
       const { error } = await supabase.from('courses').insert(courseData);
       if (error) throw error;
     },
@@ -114,6 +117,8 @@ export default function AdminCourses() {
     setTitle('');
     setDescription('');
     setTotalModules('');
+    setDifficulty('');
+    setThumbnailUrl('');
     setEditingCourse(null);
     setOpen(false);
   };
@@ -127,6 +132,8 @@ export default function AdminCourses() {
         title,
         description,
         total_modules: parseInt(totalModules),
+        difficulty: difficulty || null,
+        thumbnail_url: thumbnailUrl || null,
       };
       updateCourseMutation.mutate({ id: editingCourse.id, data: courseData });
     } else {
@@ -141,6 +148,8 @@ export default function AdminCourses() {
       title,
       description,
       total_modules: parseInt(totalModules),
+      difficulty: difficulty || null,
+      thumbnail_url: thumbnailUrl || null,
     };
     createCourseMutation.mutate(courseData);
     setConfirmOpen(false);
@@ -156,6 +165,8 @@ export default function AdminCourses() {
     setTitle(course.title);
     setDescription(course.description || '');
     setTotalModules(course.total_modules.toString());
+    setDifficulty(course.difficulty || '');
+    setThumbnailUrl(course.thumbnail_url || '');
     setOpen(true);
   };
 
@@ -228,6 +239,34 @@ export default function AdminCourses() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="difficulty">Tingkat Kesulitan</Label>
+                  <Select value={difficulty} onValueChange={setDifficulty}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih tingkat kesulitan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pemula">Pemula</SelectItem>
+                      <SelectItem value="menengah">Menengah</SelectItem>
+                      <SelectItem value="lanjutan">Lanjutan</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="thumbnail">URL Thumbnail (opsional)</Label>
+                  <div className="flex items-center gap-2">
+                    <Image className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="thumbnail"
+                      type="url"
+                      value={thumbnailUrl}
+                      onChange={(e) => setThumbnailUrl(e.target.value)}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                </div>
+
                 <div className="flex gap-2 justify-end">
                   <Button type="button" variant="outline" onClick={resetForm}>
                     Batal
@@ -254,6 +293,8 @@ export default function AdminCourses() {
                     <p><strong>Judul:</strong> {title}</p>
                     <p><strong>Deskripsi:</strong> {description || '-'}</p>
                     <p><strong>Total Modul:</strong> {totalModules}</p>
+                    <p><strong>Tingkat Kesulitan:</strong> {difficulty ? <span className="capitalize">{difficulty}</span> : '-'}</p>
+                    <p><strong>Thumbnail:</strong> {thumbnailUrl || '-'}</p>
                   </div>
                 </AlertDialogDescription>
               </AlertDialogHeader>
@@ -290,10 +331,11 @@ export default function AdminCourses() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Judul</TableHead>
-                      <TableHead>Deskripsi</TableHead>
-                      <TableHead className="text-center">Modul</TableHead>
-                      <TableHead className="text-right">Aksi</TableHead>
+                    <TableHead>Judul</TableHead>
+                    <TableHead>Deskripsi</TableHead>
+                    <TableHead className="text-center">Modul</TableHead>
+                    <TableHead>Tingkat</TableHead>
+                    <TableHead className="text-right">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -305,6 +347,13 @@ export default function AdminCourses() {
                         </TableCell>
                         <TableCell className="text-center">
                           {course.total_modules}
+                        </TableCell>
+                        <TableCell>
+                          {course.difficulty ? (
+                            <span className="capitalize text-sm">{course.difficulty}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-2 justify-end">
