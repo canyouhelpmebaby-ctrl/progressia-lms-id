@@ -10,6 +10,9 @@ import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Courses from "./pages/Courses";
+import CourseDetail from "./pages/CourseDetail";
+import LessonView from "./pages/LessonView";
+import QuizPage from "./pages/QuizPage";
 import Notifications from "./pages/Notifications";
 import Goals from "./pages/Goals";
 import LearningTimer from "./pages/LearningTimer";
@@ -20,6 +23,9 @@ import Profile from "./pages/Profile";
 import AdminUsers from "./pages/AdminUsers";
 import AdminUserDetail from "./pages/AdminUserDetail";
 import AdminCourses from "./pages/AdminCourses";
+import AdminModules from "./pages/AdminModules";
+import AdminLessons from "./pages/AdminLessons";
+import AdminQuizManagement from "./pages/AdminQuizManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +54,30 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Courses />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses/:courseId"
+              element={
+                <ProtectedRoute>
+                  <CourseDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses/:courseId/lessons/:lessonId"
+              element={
+                <ProtectedRoute>
+                  <LessonView />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses/:courseId/quizzes/:quizId"
+              element={
+                <ProtectedRoute>
+                  <QuizPage />
                 </ProtectedRoute>
               }
             />
@@ -128,6 +158,30 @@ const App = () => (
               element={
                 <ProtectedRoute requireAdmin>
                   <AdminCourses />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/courses/:courseId/modules"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminModules />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/modules/:moduleId/lessons"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLessons />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/quizzes/:quizId"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminQuizManagement />
                 </ProtectedRoute>
               }
             />

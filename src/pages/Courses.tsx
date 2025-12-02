@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import iconCourses from '@/assets/icon-courses.png';
 
 export default function Courses() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data: courses, isLoading } = useQuery({
@@ -85,7 +87,11 @@ export default function Courses() {
               const isEnrolled = !!status;
 
               return (
-                <Card key={course.id} className="shadow-md hover:shadow-lg transition-shadow bg-gradient-card">
+                <Card 
+                  key={course.id} 
+                  className="shadow-md hover:shadow-lg transition-shadow bg-gradient-card cursor-pointer"
+                  onClick={() => isEnrolled && navigate(`/courses/${course.id}`)}
+                >
                   <CardHeader>
                     <div className="flex items-start justify-between mb-3">
                       <img src={iconCourses} alt="Course icon" className="h-12 w-12" />
@@ -100,14 +106,23 @@ export default function Courses() {
                   </CardHeader>
                   <CardContent>
                     {isEnrolled ? (
-                      <Button className="w-full" variant="outline" disabled>
+                      <Button 
+                        className="w-full" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/courses/${course.id}`);
+                        }}
+                      >
                         <BookOpen className="mr-2 h-4 w-4" />
-                        Sudah Terdaftar
+                        Lihat Kursus
                       </Button>
                     ) : (
                       <Button
                         className="w-full"
-                        onClick={() => startCourseMutation.mutate(course.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startCourseMutation.mutate(course.id);
+                        }}
                         disabled={startCourseMutation.isPending}
                       >
                         <PlayCircle className="mr-2 h-4 w-4" />

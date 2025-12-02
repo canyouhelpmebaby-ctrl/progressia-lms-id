@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, Plus, Pencil, Trash2, Image } from 'lucide-react';
+import { BookOpen, Plus, Pencil, Trash2, Image, BookMarked } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -38,6 +39,7 @@ import {
 } from '@/components/ui/table';
 
 export default function AdminCourses() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -357,6 +359,14 @@ export default function AdminCourses() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/admin/courses/${course.id}/modules`)}
+                            >
+                              <BookMarked className="h-4 w-4 mr-1" />
+                              Modul
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"
