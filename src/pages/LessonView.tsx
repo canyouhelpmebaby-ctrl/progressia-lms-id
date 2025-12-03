@@ -5,8 +5,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, CheckCircle, List } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, List, FileQuestion } from 'lucide-react';
 import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function LessonView() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
@@ -168,7 +170,7 @@ export default function LessonView() {
 
           <Card className="shadow-lg">
             <CardContent className="pt-8">
-              <div className="prose prose-lg max-w-none">
+              <div className="prose prose-lg max-w-none dark:prose-invert">
                 <h1 className="text-4xl font-bold mb-2 pb-4 border-b-2 border-primary">
                   {lesson.title}
                 </h1>
@@ -181,10 +183,24 @@ export default function LessonView() {
                   />
                 )}
 
-                <div
-                  className="lesson-content"
-                  dangerouslySetInnerHTML={{ __html: lesson.content_html }}
-                />
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h1: ({children}) => <h1 className="text-3xl font-bold mt-8 mb-4">{children}</h1>,
+                    h2: ({children}) => <h2 className="text-2xl font-semibold mt-6 mb-3">{children}</h2>,
+                    h3: ({children}) => <h3 className="text-xl font-semibold mt-5 mb-2">{children}</h3>,
+                    p: ({children}) => <p className="mb-4 text-foreground leading-relaxed">{children}</p>,
+                    ul: ({children}) => <ul className="list-disc list-inside mb-4 space-y-2">{children}</ul>,
+                    ol: ({children}) => <ol className="list-decimal list-inside mb-4 space-y-2">{children}</ol>,
+                    li: ({children}) => <li className="text-foreground">{children}</li>,
+                    strong: ({children}) => <strong className="font-bold">{children}</strong>,
+                    em: ({children}) => <em className="italic">{children}</em>,
+                    blockquote: ({children}) => <blockquote className="border-l-4 border-primary pl-4 italic my-4">{children}</blockquote>,
+                    code: ({children}) => <code className="bg-muted px-1 py-0.5 rounded text-sm">{children}</code>,
+                  }}
+                >
+                  {lesson.content_html}
+                </ReactMarkdown>
               </div>
 
               <div className="mt-8 pt-6 border-t">

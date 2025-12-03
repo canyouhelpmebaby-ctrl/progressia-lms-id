@@ -6,7 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ChevronDown, ChevronRight, CheckCircle2, Circle, PlayCircle } from 'lucide-react';
+import { ChevronDown, ChevronRight, CheckCircle2, Circle, PlayCircle, FileQuestion, Trophy } from 'lucide-react';
 import { useState } from 'react';
 
 export default function CourseDetail() {
@@ -60,6 +60,36 @@ export default function CourseDetail() {
     enabled: !!modules && modules.length > 0,
   });
 
+  const { data: quizzes } = useQuery({
+    queryKey: ['quizzes', courseId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('quizzes')
+        .select('*')
+        .eq('is_active', true)
+        .or(`course_id.eq.${courseId},module_id.in.(${modules?.map(m => m.id).join(',')})`);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!courseId && !!modules && modules.length > 0,
+  });
+
+  const { data: quizAttempts } = useQuery({
+    queryKey: ['quiz-attempts', user?.id, courseId],
+    queryFn: async () => {
+      if (!user || !quizzes) return [];
+      const quizIds = quizzes.map(q => q.id);
+      const { data, error } = await supabase
+        .from('user_quiz_attempts')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('quiz_id', quizIds);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user && !!quizzes && quizzes.length > 0,
+  });
+
   const { data: progress } = useQuery({
     queryKey: ['lesson-progress', user?.id, courseId],
     queryFn: async () => {
@@ -92,6 +122,23 @@ export default function CourseDetail() {
 
   const isLessonCompleted = (lessonId: string) => {
     return progress?.some(p => p.lesson_id === lessonId && p.completed) || false;
+  };
+
+  const getModuleQuiz = (moduleId: string) => {
+    return quizzes?.find(q => q.module_id === moduleId);
+  };
+
+  const getFinalQuiz = () => {
+    return quizzes?.find(q => q.course_id === courseId && q.quiz_type === 'final');
+  };
+
+  const isQuizPassed = (quizId: string) => {
+    return quizAttempts?.some(a => a.quiz_id === quizId && a.passed) || false;
+  };
+
+  const areAllModuleLessonsCompleted = (moduleId: string) => {
+    const moduleLessons = getModuleLessons(moduleId);
+    return moduleLessons.length > 0 && moduleLessons.every(l => isLessonCompleted(l.id));
   };
 
   const calculateProgress = () => {
@@ -230,6 +277,44 @@ export default function CourseDetail() {
                               </div>
                             );
                           })}
+
+                          {/* Quiz Modul */}
+                          {(() => {
+                            const moduleQuiz = getModuleQuiz(module.id);
+                            if (!moduleQuiz) return null;
+                            const allLessonsCompleted = areAllModuleLessonsCompleted(module.id);
+                            const quizPassed = isQuizPassed(moduleQuiz.id);
+                            
+                            return (
+                              <div
+                                className={`flex items-center gap-3 p-3 rounded-lg border-2 border-dashed transition-colors ${
+                                  allLessonsCompleted 
+                                    ? 'border-primary/50 hover:bg-primary/5 cursor-pointer' 
+                                    : 'border-muted opacity-50'
+                                }`}
+                                onClick={() => allLessonsCompleted && navigate(`/courses/${courseId}/quizzes/${moduleQuiz.id}`)}
+                              >
+                                {quizPassed ? (
+                                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                                ) : (
+                                  <FileQuestion className="h-5 w-5 text-primary flex-shrink-0" />
+                                )}
+                                <span className="font-medium text-primary">
+                                  Kuis: {moduleQuiz.title}
+                                </span>
+                                {!allLessonsCompleted && (
+                                  <span className="text-xs text-muted-foreground ml-auto">
+                                    Selesaikan semua materi terlebih dahulu
+                                  </span>
+                                )}
+                                {quizPassed && (
+                                  <span className="text-xs text-green-600 ml-auto font-medium">
+                                    Lulus ✓
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
                       </CardContent>
                     )}
@@ -243,6 +328,60 @@ export default function CourseDetail() {
                     Belum ada modul untuk kursus ini.
                   </p>
                 </CardContent>
+              </Card>
+            )}
+
+            {/* Final Quiz */}
+            {(() => {
+              const finalQuiz = getFinalQuiz();
+              if (!finalQuiz) return null;
+              const allLessonsComplete = progressPercentage === 100;
+              const quizPassed = isQuizPassed(finalQuiz.id);
+
+              return (
+                <Card className={`mt-6 border-2 ${allLessonsComplete ? 'border-primary' : 'border-muted'}`}>
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <Trophy className={`h-6 w-6 ${allLessonsComplete ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <div>
+                        <CardTitle>Kuis Akhir Kursus</CardTitle>
+                        <CardDescription>
+                          {allLessonsComplete 
+                            ? 'Selesaikan kuis untuk menyelesaikan kursus ini'
+                            : 'Selesaikan semua materi untuk membuka kuis akhir'}
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      onClick={() => navigate(`/courses/${courseId}/quizzes/${finalQuiz.id}`)}
+                      disabled={!allLessonsComplete}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {quizPassed ? (
+                        <>
+                          <CheckCircle2 className="mr-2 h-5 w-5" />
+                          Kuis Sudah Lulus - Lihat Kembali
+                        </>
+                      ) : (
+                        <>
+                          <FileQuestion className="mr-2 h-5 w-5" />
+                          Mulai Kuis Akhir
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })()}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
               </Card>
             )}
           </div>
