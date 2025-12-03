@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2, BookOpen, FileQuestion } from 'lucide-react';
+import { Plus, Edit, Trash2, BookOpen, FileQuestion, Trophy } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -48,6 +48,20 @@ export default function AdminModules() {
       if (error) throw error;
       return data;
     },
+  });
+
+  // Fetch all quizzes for this course (both module quizzes and final quiz)
+  const { data: quizzes } = useQuery({
+    queryKey: ['quizzes', courseId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('quizzes')
+        .select('*')
+        .or(`course_id.eq.${courseId},module_id.in.(${modules?.map(m => m.id).join(',') || ''})`);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!modules,
   });
 
   const createModuleMutation = useMutation({
@@ -106,6 +120,40 @@ export default function AdminModules() {
     },
   });
 
+  // Create quiz mutation
+  const createQuizMutation = useMutation({
+    mutationFn: async ({ moduleId, quizType, quizTitle }: { moduleId?: string; quizType: 'module' | 'final'; quizTitle: string }) => {
+      const insertData: any = {
+        title: quizTitle,
+        quiz_type: quizType,
+        passing_score: 70,
+        is_active: true,
+      };
+
+      if (quizType === 'module' && moduleId) {
+        insertData.module_id = moduleId;
+      } else if (quizType === 'final') {
+        insertData.course_id = courseId;
+      }
+
+      const { data, error } = await supabase
+        .from('quizzes')
+        .insert(insertData)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+      toast.success('Kuis berhasil dibuat');
+      navigate(`/admin/quizzes/${data.id}`);
+    },
+    onError: () => {
+      toast.error('Gagal membuat kuis');
+    },
+  });
+
   const resetForm = () => {
     setTitle('');
     setDescription('');
@@ -133,6 +181,43 @@ export default function AdminModules() {
       createModuleMutation.mutate();
     }
   };
+
+  // Helper function to get quiz for a module
+  const getModuleQuiz = (moduleId: string) => {
+    return quizzes?.find(q => q.module_id === moduleId && q.quiz_type === 'module');
+  };
+
+  // Helper function to get final quiz
+  const getFinalQuiz = () => {
+    return quizzes?.find(q => q.course_id === courseId && q.quiz_type === 'final');
+  };
+
+  const handleCreateOrEditQuiz = (moduleId: string, moduleName: string) => {
+    const existingQuiz = getModuleQuiz(moduleId);
+    if (existingQuiz) {
+      navigate(`/admin/quizzes/${existingQuiz.id}`);
+    } else {
+      createQuizMutation.mutate({
+        moduleId,
+        quizType: 'module',
+        quizTitle: `Kuis: ${moduleName}`,
+      });
+    }
+  };
+
+  const handleCreateOrEditFinalQuiz = () => {
+    const existingQuiz = getFinalQuiz();
+    if (existingQuiz) {
+      navigate(`/admin/quizzes/${existingQuiz.id}`);
+    } else {
+      createQuizMutation.mutate({
+        quizType: 'final',
+        quizTitle: `Kuis Final: ${course?.title || 'Kursus'}`,
+      });
+    }
+  };
+
+  const finalQuiz = getFinalQuiz();
 
   return (
     <>
@@ -198,7 +283,7 @@ export default function AdminModules() {
             </Dialog>
           </div>
 
-          <Card>
+          <Card className="mb-6">
             <CardHeader>
               <CardTitle>Daftar Modul</CardTitle>
             </CardHeader>
@@ -218,53 +303,65 @@ export default function AdminModules() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {modules.map((module) => (
-                      <TableRow key={module.id}>
-                        <TableCell>{module.order_index}</TableCell>
-                        <TableCell className="font-medium">{module.title}</TableCell>
-                        <TableCell>{module.description}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => navigate(`/admin/modules/${module.id}/lessons`)}
-                            >
-                              <BookOpen className="h-4 w-4 mr-1" />
-                              Materi
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(module)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="destructive" size="sm">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Hapus Modul</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Apakah Anda yakin ingin menghapus modul ini? Semua materi dan kuis dalam modul ini juga akan terhapus.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Batal</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => deleteModuleMutation.mutate(module.id)}>
-                                    Hapus
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {modules.map((module) => {
+                      const moduleQuiz = getModuleQuiz(module.id);
+                      return (
+                        <TableRow key={module.id}>
+                          <TableCell>{module.order_index}</TableCell>
+                          <TableCell className="font-medium">{module.title}</TableCell>
+                          <TableCell className="max-w-xs truncate">{module.description}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/admin/modules/${module.id}/lessons`)}
+                              >
+                                <BookOpen className="h-4 w-4 mr-1" />
+                                Materi
+                              </Button>
+                              <Button
+                                variant={moduleQuiz ? "secondary" : "outline"}
+                                size="sm"
+                                onClick={() => handleCreateOrEditQuiz(module.id, module.title)}
+                                disabled={createQuizMutation.isPending}
+                              >
+                                <FileQuestion className="h-4 w-4 mr-1" />
+                                {moduleQuiz ? 'Edit Kuis' : 'Buat Kuis'}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(module)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="destructive" size="sm">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Hapus Modul</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Apakah Anda yakin ingin menghapus modul ini? Semua materi dan kuis dalam modul ini juga akan terhapus.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteModuleMutation.mutate(module.id)}>
+                                      Hapus
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               ) : (
@@ -272,6 +369,45 @@ export default function AdminModules() {
                   Belum ada modul. Tambahkan modul pertama Anda!
                 </p>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Final Quiz Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-yellow-500" />
+                Kuis Akhir Kursus
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                <div>
+                  {finalQuiz ? (
+                    <>
+                      <p className="font-medium">{finalQuiz.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Passing Score: {finalQuiz.passing_score}% • Status: {finalQuiz.is_active ? 'Aktif' : 'Tidak Aktif'}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-medium">Belum ada kuis akhir</p>
+                      <p className="text-sm text-muted-foreground">
+                        Buat kuis akhir untuk menguji pemahaman keseluruhan kursus
+                      </p>
+                    </>
+                  )}
+                </div>
+                <Button
+                  variant={finalQuiz ? "secondary" : "default"}
+                  onClick={handleCreateOrEditFinalQuiz}
+                  disabled={createQuizMutation.isPending}
+                >
+                  <Trophy className="h-4 w-4 mr-2" />
+                  {finalQuiz ? 'Edit Kuis Final' : 'Buat Kuis Final'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
