@@ -180,17 +180,31 @@ export default function AdminLessons() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="content">Konten HTML</Label>
+                    <Label htmlFor="content">Konten Markdown</Label>
                     <Textarea
                       id="content"
                       value={contentHtml}
                       onChange={(e) => setContentHtml(e.target.value)}
-                      placeholder="<h2>Judul</h2><p>Paragraf...</p><ul><li>Item 1</li></ul>"
-                      rows={12}
+                      placeholder={`## Judul Bagian
+
+Ini adalah paragraf penjelasan materi. Anda bisa menulis **teks tebal** atau *miring*.
+
+### Sub Judul
+
+- Item pertama
+- Item kedua
+- Item ketiga
+
+1. Langkah pertama
+2. Langkah kedua
+3. Langkah ketiga
+
+> Ini adalah kutipan atau catatan penting`}
+                      rows={14}
                       className="font-mono text-sm"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Gunakan tag HTML: h2, h3, p, ul, ol, li, strong, em
+                      Gunakan format Markdown: ## Heading, **bold**, *italic*, - bullet list, 1. numbered list
                     </p>
                   </div>
                   <div>
