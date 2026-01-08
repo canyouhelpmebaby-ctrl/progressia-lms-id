@@ -47,46 +47,47 @@ export default function QuizPage() {
     enabled: !!quizId,
   });
 
+  // Use the student view that doesn't expose is_correct field
   const { data: options, isLoading: optionsLoading } = useQuery({
     queryKey: ['quiz-options', quizId],
     queryFn: async () => {
       if (!questions || questions.length === 0) return [];
       const questionIds = questions.map(q => q.id);
+      // Query the student view which excludes is_correct
       const { data, error } = await supabase
-        .from('quiz_options')
-        .select('*')
+        .from('quiz_options_student' as 'quiz_options')
+        .select('id, question_id, option_text, order_index')
         .in('question_id', questionIds)
         .order('order_index', { ascending: true });
       if (error) throw error;
-      return data;
+      return data as unknown as { id: string; question_id: string; option_text: string; order_index: number }[];
     },
     enabled: !!questions && questions.length > 0,
   });
 
+  // Use server-side grading function - answers are never exposed to client
   const submitQuizMutation = useMutation({
     mutationFn: async () => {
-      if (!user || !quiz || !questions || !options) {
+      if (!user || !quiz || !questions) {
         throw new Error('Data tidak lengkap');
       }
 
-      let totalScore = 0;
-      let earnedScore = 0;
+      // Call the secure server-side grading function
+      const { data: gradeResult, error: gradeError } = await supabase
+        .rpc('grade_quiz', {
+          p_quiz_id: quizId,
+          p_answers: answers,
+        });
 
-      questions.forEach(question => {
-        const questionOptions = options.filter(o => o.question_id === question.id);
-        const correctOption = questionOptions.find(o => o.is_correct);
-        const userAnswer = answers[question.id];
+      if (gradeError) throw gradeError;
+      if (!gradeResult || gradeResult.length === 0) {
+        throw new Error('Gagal menghitung nilai');
+      }
 
-        totalScore += question.points;
-        if (userAnswer === correctOption?.id) {
-          earnedScore += question.points;
-        }
-      });
+      const { score, passed } = gradeResult[0];
 
-      const score = Math.round((earnedScore / totalScore) * 100);
-      const passed = score >= quiz.passing_score;
-
-      const { error } = await supabase
+      // Save the attempt
+      const { error: saveError } = await supabase
         .from('user_quiz_attempts')
         .insert({
           user_id: user.id,
@@ -96,7 +97,7 @@ export default function QuizPage() {
           answers: answers,
         });
 
-      if (error) throw error;
+      if (saveError) throw saveError;
 
       return { score, passed };
     },

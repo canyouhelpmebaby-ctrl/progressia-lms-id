@@ -672,9 +672,46 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      quiz_options_student: {
+        Row: {
+          id: string | null
+          option_text: string | null
+          order_index: number | null
+          question_id: string | null
+        }
+        Insert: {
+          id?: string | null
+          option_text?: string | null
+          order_index?: number | null
+          question_id?: string | null
+        }
+        Update: {
+          id?: string | null
+          option_text?: string | null
+          order_index?: number | null
+          question_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_options_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      grade_quiz: {
+        Args: { p_answers: Json; p_quiz_id: string }
+        Returns: {
+          earned_points: number
+          passed: boolean
+          score: number
+          total_points: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
