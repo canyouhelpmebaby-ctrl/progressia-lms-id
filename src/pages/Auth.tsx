@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +16,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { GraduationCap, Eye, EyeOff } from 'lucide-react';
+import { GraduationCap, Eye, EyeOff, Mail, CheckCircle } from 'lucide-react';
 import heroImage from '@/assets/hero-education.jpg';
 import logoImage from '@/assets/logo.jpg';
 
@@ -30,6 +31,8 @@ export default function Auth() {
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
 
@@ -68,9 +71,19 @@ export default function Auth() {
     const { error } = await signUp(email, password, fullName);
 
     if (error) {
-      toast.error('Gagal mendaftar: ' + error.message);
+      if (error.message.includes('already registered')) {
+        toast.error('Email sudah terdaftar. Silakan masuk atau gunakan email lain.');
+      } else {
+        toast.error('Gagal mendaftar: ' + error.message);
+      }
     } else {
-      toast.success('Berhasil mendaftar! Silakan masuk.');
+      setRegisteredEmail(email);
+      setSignUpSuccess(true);
+      // Reset form
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setFullName('');
     }
 
     setLoading(false);
@@ -182,75 +195,118 @@ export default function Auth() {
               </TabsContent>
 
               <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Nama Lengkap</Label>
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      placeholder="John Doe"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="nama@contoh.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="signup-password"
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={6}
-                        className="pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
+                {signUpSuccess ? (
+                  <div className="space-y-4">
+                    <Alert className="border-green-500 bg-green-50 dark:bg-green-950/30">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <AlertTitle className="text-green-800 dark:text-green-400">
+                        Pendaftaran Berhasil!
+                      </AlertTitle>
+                      <AlertDescription className="text-green-700 dark:text-green-300">
+                        Link verifikasi telah dikirim ke <strong>{registeredEmail}</strong>. 
+                        Silakan cek inbox email Anda dan klik link verifikasi untuk mengaktifkan akun.
+                      </AlertDescription>
+                    </Alert>
+                    
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Mail className="h-4 w-4" />
+                        <span>Tips:</span>
+                      </div>
+                      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                        <li>Cek folder spam jika tidak menemukan email</li>
+                        <li>Link verifikasi berlaku selama 24 jam</li>
+                        <li>Setelah verifikasi, Anda dapat langsung masuk</li>
+                      </ul>
                     </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setSignUpSuccess(false)}
+                    >
+                      Daftar dengan Email Lain
+                    </Button>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm-password">Konfirmasi Password</Label>
-                    <div className="relative">
+                ) : (
+                  <form onSubmit={handleSignUp} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-name">Nama Lengkap</Label>
                       <Input
-                        id="signup-confirm-password"
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        id="signup-name"
+                        type="text"
+                        placeholder="John Doe"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
                         required
-                        minLength={6}
-                        className="pr-10"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
                     </div>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? 'Memproses...' : 'Daftar'}
-                  </Button>
-                </form>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder="nama@contoh.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password</Label>
+                      <div className="relative">
+                        <Input
+                          id="signup-password"
+                          type={showPassword ? 'text' : 'password'}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          minLength={6}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-confirm-password">Konfirmasi Password</Label>
+                      <div className="relative">
+                        <Input
+                          id="signup-confirm-password"
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                          minLength={6}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                      <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        Anda akan menerima email verifikasi untuk mengaktifkan akun
+                      </p>
+                    </div>
+                    
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? 'Memproses...' : 'Daftar'}
+                    </Button>
+                  </form>
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>
