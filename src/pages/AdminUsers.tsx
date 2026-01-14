@@ -69,22 +69,31 @@ export default function AdminUsers() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<{ id: string; name: string } | null>(null);
 
-  // Fetch profiles with roles and stats
+  // Fetch profiles (all users) + roles (admin/student) then merge in-memory.
+  // NOTE: PostgREST nested selects require FK relationships; we fetch separately to avoid empty results.
   const { data: profiles, isLoading } = useQuery({
     queryKey: ['admin-profiles'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          user_roles (
-            role
-          )
-        `)
-        .order('created_at', { ascending: false });
+      const [{ data: profilesData, error: profilesError }, { data: rolesData, error: rolesError }] =
+        await Promise.all([
+          supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+          supabase.from('user_roles').select('user_id, role'),
+        ]);
 
-      if (error) throw error;
-      return data;
+      if (profilesError) throw profilesError;
+      if (rolesError) throw rolesError;
+
+      const rolesByUser = new Map<string, Array<{ role: string }>>();
+      (rolesData || []).forEach((r: any) => {
+        const current = rolesByUser.get(r.user_id) || [];
+        current.push({ role: r.role });
+        rolesByUser.set(r.user_id, current);
+      });
+
+      return (profilesData || []).map((p: any) => ({
+        ...p,
+        user_roles: rolesByUser.get(p.id) || [],
+      }));
     },
   });
 
