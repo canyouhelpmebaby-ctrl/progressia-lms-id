@@ -26,6 +26,7 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { exportUsersToCSV } from '@/lib/export-utils';
 import {
   Table,
@@ -63,6 +64,7 @@ import {
 export default function AdminUsers() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [isExporting, setIsExporting] = useState(false);
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'student'>('all');
@@ -72,7 +74,7 @@ export default function AdminUsers() {
   // Fetch profiles (all users) + roles (admin/student) then merge in-memory.
   // NOTE: PostgREST nested selects require FK relationships; we fetch separately to avoid empty results.
   const { data: profiles, isLoading } = useQuery({
-    queryKey: ['admin-profiles'],
+    queryKey: ['admin-profiles', user?.id],
     queryFn: async () => {
       const [{ data: profilesData, error: profilesError }, { data: rolesData, error: rolesError }] =
         await Promise.all([
@@ -95,11 +97,12 @@ export default function AdminUsers() {
         user_roles: rolesByUser.get(p.id) || [],
       }));
     },
+    enabled: !!user && isAdmin,
   });
 
   // Fetch user stats summary
   const { data: userStats } = useQuery({
-    queryKey: ['admin-user-stats'],
+    queryKey: ['admin-user-stats', user?.id],
     queryFn: async () => {
       const [sessionsResult, progressResult, rewardsResult] = await Promise.all([
         supabase.from('learning_sessions').select('user_id, duration_minutes'),
@@ -129,6 +132,7 @@ export default function AdminUsers() {
 
       return { sessionsByUser, coursesByUser, pointsByUser };
     },
+    enabled: !!user && isAdmin,
   });
 
   const toggleAdminMutation = useMutation({
