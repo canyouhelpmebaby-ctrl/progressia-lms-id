@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
+import { BackButton } from '@/components/BackButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -69,6 +70,7 @@ export default function Courses() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
+        <BackButton />
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
             Kursus Tersedia

@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/Navbar';
+import { BackButton } from '@/components/BackButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -144,14 +145,7 @@ export default function AdminLessons() {
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-8">
         <div className="container mx-auto px-4 max-w-6xl">
-          <Button
-            variant="ghost"
-            className="mb-4"
-            onClick={() => navigate(`/admin/courses/${module?.course_id}/modules`)}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Kembali ke Modul
-          </Button>
+          <BackButton fallbackPath={`/admin/courses/${module?.course_id}/modules`} label="Kembali ke Modul" />
 
           <div className="flex items-center justify-between mb-6">
             <div>

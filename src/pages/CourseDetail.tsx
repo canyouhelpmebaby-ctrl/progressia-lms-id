@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navbar } from '@/components/Navbar';
+import { BackButton } from '@/components/BackButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -186,6 +187,7 @@ export default function CourseDetail() {
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-8">
         <div className="container mx-auto px-4 max-w-5xl">
+          <BackButton fallbackPath="/courses" />
           <Card className="mb-8 shadow-lg">
             <CardHeader>
               <CardTitle className="text-3xl font-bold">{course.title}</CardTitle>

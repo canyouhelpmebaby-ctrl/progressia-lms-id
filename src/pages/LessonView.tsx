@@ -161,10 +161,11 @@ export default function LessonView() {
         <div className="container mx-auto px-4 max-w-4xl">
           <Button
             variant="ghost"
+            size="sm"
             className="mb-6"
             onClick={() => navigate(`/courses/${courseId}`)}
           >
-            <List className="mr-2 h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Kembali ke Daftar Modul
           </Button>
 

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navbar } from '@/components/Navbar';
+import { BackButton } from '@/components/BackButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -168,6 +169,7 @@ export default function QuizPage() {
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-8">
         <div className="container mx-auto px-4 max-w-4xl">
+          <BackButton fallbackPath={`/courses/${courseId}`} />
           <Card className="shadow-lg mb-6">
             <CardHeader>
               <CardTitle className="text-3xl">{quiz.title}</CardTitle>
