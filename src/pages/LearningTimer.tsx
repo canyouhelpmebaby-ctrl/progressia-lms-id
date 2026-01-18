@@ -96,7 +96,7 @@ export default function LearningTimer() {
         <BackButton />
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
-            Timer Pembelajaran
+            Waktu Pembelajaran
           </h1>
           <p className="text-muted-foreground">
             Kelola waktu belajar dengan teknik Pomodoro
