@@ -23,10 +23,7 @@ export default function Index() {
             </div>
             <div className="flex items-center gap-4">
               <Link to="/auth">
-                <Button variant="ghost">Masuk</Button>
-              </Link>
-              <Link to="/auth">
-                <Button>Mulai Sekarang</Button>
+                <Button>Masuk</Button>
               </Link>
             </div>
           </div>

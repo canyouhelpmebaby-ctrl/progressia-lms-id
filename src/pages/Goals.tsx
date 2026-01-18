@@ -226,35 +226,43 @@ export default function Goals() {
                         </span>
                       </div>
                       <Progress value={progress} className="h-2" />
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            updateProgressMutation.mutate({
-                              id: goal.id,
-                              current_value: Math.max(0, goal.current_value - 1),
-                            })
-                          }
-                        >
-                          -
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="flex-1"
-                          onClick={() =>
-                            updateProgressMutation.mutate({
-                              id: goal.id,
-                              current_value: Math.min(
-                                goal.target_value,
-                                goal.current_value + 1
-                              ),
-                            })
-                          }
-                        >
-                          + 1
-                        </Button>
-                      </div>
+                      {goal.current_value >= goal.target_value ? (
+                        <div className="flex justify-center">
+                          <span className="text-sm font-semibold text-green-600 bg-green-100 px-4 py-2 rounded-full">
+                            ✓ Selesai
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              updateProgressMutation.mutate({
+                                id: goal.id,
+                                current_value: Math.max(0, goal.current_value - 1),
+                              })
+                            }
+                          >
+                            -
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="flex-1"
+                            onClick={() =>
+                              updateProgressMutation.mutate({
+                                id: goal.id,
+                                current_value: Math.min(
+                                  goal.target_value,
+                                  goal.current_value + 1
+                                ),
+                              })
+                            }
+                          >
+                            + 1
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Selesai pada: {new Date(goal.end_date).toLocaleDateString('id-ID')}
