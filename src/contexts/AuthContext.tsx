@@ -85,9 +85,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setIsAdmin(false);
-    navigate('/auth');
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+        // Force clear local state even if signOut fails
+      }
+    } catch (err) {
+      console.error('Logout exception:', err);
+    } finally {
+      // Always clear state and redirect regardless of error
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
+      navigate('/auth');
+    }
   };
 
   return (
