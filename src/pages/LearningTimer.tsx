@@ -106,7 +106,7 @@ export default function LearningTimer() {
         <div className="grid gap-6 md:grid-cols-2">
           <Card className="shadow-md">
             <CardHeader>
-              <CardTitle>Timer</CardTitle>
+              <CardTitle>Waktu</CardTitle>
               <CardDescription>Atur waktu fokus dan istirahat Anda</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
