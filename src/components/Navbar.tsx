@@ -160,7 +160,10 @@ export const Navbar = () => {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Batal</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => signOut()}>Keluar</AlertDialogAction>
+                  <AlertDialogAction onClick={async () => {
+                    setShowLogoutDialog(false);
+                    await signOut();
+                  }}>Keluar</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
