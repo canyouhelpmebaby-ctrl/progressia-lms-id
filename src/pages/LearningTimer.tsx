@@ -72,6 +72,10 @@ export default function LearningTimer() {
   }, [isActive, minutes, seconds]);
 
   const toggleTimer = () => {
+    if (!isActive && !selectedCourse) {
+      toast.error('Pilih kursus terlebih dahulu sebelum memulai timer');
+      return;
+    }
     setIsActive(!isActive);
   };
 
@@ -182,10 +186,16 @@ export default function LearningTimer() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Kursus</label>
-                <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih kursus (opsional)" />
+                <label className="text-sm font-medium mb-2 block">
+                  Kursus <span className="text-destructive">*</span>
+                </label>
+                <Select 
+                  value={selectedCourse} 
+                  onValueChange={setSelectedCourse}
+                  disabled={isActive}
+                >
+                  <SelectTrigger className={!selectedCourse && !isActive ? 'border-destructive' : ''}>
+                    <SelectValue placeholder="Pilih kursus (wajib)" />
                   </SelectTrigger>
                   <SelectContent>
                     {courses?.map((course) => (
@@ -195,6 +205,12 @@ export default function LearningTimer() {
                     ))}
                   </SelectContent>
                 </Select>
+                {!selectedCourse && !isActive && (
+                  <p className="text-sm text-destructive mt-1">Pilih kursus sebelum memulai timer</p>
+                )}
+                {isActive && (
+                  <p className="text-sm text-muted-foreground mt-1">Kursus terkunci saat timer berjalan</p>
+                )}
               </div>
 
               <div className="bg-gradient-card p-4 rounded-lg">
