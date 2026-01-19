@@ -9,7 +9,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
-
 export const Navbar = () => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const {
@@ -94,10 +93,7 @@ export const Navbar = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/rewards" className="cursor-pointer">
-                    <Award className="h-4 w-4 mr-2" />
-                    Penghargaan
-                  </Link>
+                  
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/certificates" className="cursor-pointer">
@@ -108,13 +104,9 @@ export const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {isAdmin && (
-              <DropdownMenu>
+            {isAdmin && <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant={isActive('/admin/users') || isActive('/admin/courses') ? 'default' : 'ghost'} 
-                    className="gap-2"
-                  >
+                  <Button variant={isActive('/admin/users') || isActive('/admin/courses') ? 'default' : 'ghost'} className="gap-2">
                     Panel Admin
                     <ChevronDown className="h-4 w-4" />
                   </Button>
@@ -133,8 +125,7 @@ export const Navbar = () => {
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+              </DropdownMenu>}
 
             <Link to="/notifications" className="relative">
               <Button variant={isActive('/notifications') ? 'default' : 'ghost'} size="icon">
@@ -167,9 +158,9 @@ export const Navbar = () => {
                 <AlertDialogFooter>
                   <AlertDialogCancel>Batal</AlertDialogCancel>
                   <AlertDialogAction onClick={async () => {
-                    setShowLogoutDialog(false);
-                    await signOut();
-                  }}>Keluar</AlertDialogAction>
+                  setShowLogoutDialog(false);
+                  await signOut();
+                }}>Keluar</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
