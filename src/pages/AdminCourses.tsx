@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { BackButton } from '@/components/BackButton';
@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, Plus, Pencil, Trash2, Image, BookMarked } from 'lucide-react';
+import { BookOpen, Plus, Pencil, Trash2, Image, BookMarked, Upload, Award, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -50,6 +50,9 @@ export default function AdminCourses() {
   const [totalModules, setTotalModules] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
+  const [uploadingCertificate, setUploadingCertificate] = useState(false);
+  const certificateInputRef = useRef<HTMLInputElement>(null);
 
   const { data: courses, isLoading } = useQuery({
     queryKey: ['admin-courses'],
@@ -64,8 +67,27 @@ export default function AdminCourses() {
     },
   });
 
+  // Upload certificate template
+  const uploadCertificateTemplate = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `templates/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('certificate-templates')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('certificate-templates')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
   const createCourseMutation = useMutation({
-    mutationFn: async (courseData: { title: string; description: string; total_modules: number; difficulty?: string; thumbnail_url?: string }) => {
+    mutationFn: async (courseData: { title: string; description: string; total_modules: number; difficulty?: string; thumbnail_url?: string; certificate_template_url?: string }) => {
       const { error } = await supabase.from('courses').insert(courseData);
       if (error) throw error;
     },
@@ -122,23 +144,47 @@ export default function AdminCourses() {
     setTotalModules('');
     setDifficulty('');
     setThumbnailUrl('');
+    setCertificateFile(null);
     setEditingCourse(null);
     setOpen(false);
+    if (certificateInputRef.current) {
+      certificateInputRef.current.value = '';
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validasi: template sertifikat wajib untuk kursus baru
+    if (!editingCourse && !certificateFile) {
+      toast.error('Template sertifikat wajib diunggah!');
+      return;
+    }
+
     if (editingCourse) {
-      // Langsung update jika sedang edit
-      const courseData = {
-        title,
-        description,
-        total_modules: parseInt(totalModules),
-        difficulty: difficulty || null,
-        thumbnail_url: thumbnailUrl || null,
-      };
-      updateCourseMutation.mutate({ id: editingCourse.id, data: courseData });
+      // Handle update dengan atau tanpa file baru
+      setUploadingCertificate(true);
+      try {
+        let certificateUrl = editingCourse.certificate_template_url;
+        
+        if (certificateFile) {
+          certificateUrl = await uploadCertificateTemplate(certificateFile);
+        }
+
+        const courseData = {
+          title,
+          description,
+          total_modules: parseInt(totalModules),
+          difficulty: difficulty || null,
+          thumbnail_url: thumbnailUrl || null,
+          certificate_template_url: certificateUrl,
+        };
+        updateCourseMutation.mutate({ id: editingCourse.id, data: courseData });
+      } catch (error: any) {
+        toast.error('Gagal mengunggah template: ' + error.message);
+      } finally {
+        setUploadingCertificate(false);
+      }
     } else {
       // Tampilkan konfirmasi jika tambah baru
       setOpen(false);
@@ -146,16 +192,30 @@ export default function AdminCourses() {
     }
   };
 
-  const handleConfirmCreate = () => {
-    const courseData = {
-      title,
-      description,
-      total_modules: parseInt(totalModules),
-      difficulty: difficulty || null,
-      thumbnail_url: thumbnailUrl || null,
-    };
-    createCourseMutation.mutate(courseData);
-    setConfirmOpen(false);
+  const handleConfirmCreate = async () => {
+    setUploadingCertificate(true);
+    try {
+      let certificateUrl = '';
+      
+      if (certificateFile) {
+        certificateUrl = await uploadCertificateTemplate(certificateFile);
+      }
+
+      const courseData = {
+        title,
+        description,
+        total_modules: parseInt(totalModules),
+        difficulty: difficulty || null,
+        thumbnail_url: thumbnailUrl || null,
+        certificate_template_url: certificateUrl || null,
+      };
+      createCourseMutation.mutate(courseData);
+    } catch (error: any) {
+      toast.error('Gagal mengunggah template: ' + error.message);
+    } finally {
+      setUploadingCertificate(false);
+      setConfirmOpen(false);
+    }
   };
 
   const handleCancelConfirm = () => {
@@ -170,6 +230,7 @@ export default function AdminCourses() {
     setTotalModules(course.total_modules.toString());
     setDifficulty(course.difficulty || '');
     setThumbnailUrl(course.thumbnail_url || '');
+    setCertificateFile(null);
     setOpen(true);
   };
 
@@ -271,15 +332,45 @@ export default function AdminCourses() {
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="certificate">
+                    Template Sertifikat {!editingCourse && <span className="text-destructive">*</span>}
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Award className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      ref={certificateInputRef}
+                      id="certificate"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,.pdf"
+                      onChange={(e) => setCertificateFile(e.target.files?.[0] || null)}
+                      required={!editingCourse}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Format: PNG, JPG, atau PDF. {editingCourse && 'Kosongkan jika tidak ingin mengubah template.'}
+                  </p>
+                  {editingCourse?.certificate_template_url && (
+                    <p className="text-xs text-primary">
+                      ✓ Template sertifikat sudah ada
+                    </p>
+                  )}
+                </div>
+
                 <div className="flex gap-2 justify-end">
                   <Button type="button" variant="outline" onClick={resetForm}>
                     Batal
                   </Button>
                   <Button
                     type="submit"
-                    disabled={createCourseMutation.isPending || updateCourseMutation.isPending}
+                    disabled={createCourseMutation.isPending || updateCourseMutation.isPending || uploadingCertificate}
                   >
-                    {editingCourse ? 'Update' : 'Simpan'}
+                    {uploadingCertificate ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        Mengunggah...
+                      </>
+                    ) : editingCourse ? 'Update' : 'Simpan'}
                   </Button>
                 </div>
               </form>

@@ -54,6 +54,7 @@ export type Database = {
       }
       courses: {
         Row: {
+          certificate_template_url: string | null
           created_at: string
           description: string | null
           difficulty: string | null
@@ -64,6 +65,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          certificate_template_url?: string | null
           created_at?: string
           description?: string | null
           difficulty?: string | null
@@ -74,6 +76,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          certificate_template_url?: string | null
           created_at?: string
           description?: string | null
           difficulty?: string | null
@@ -549,6 +552,44 @@ export type Database = {
           },
         ]
       }
+      user_certificates: {
+        Row: {
+          certificate_number: string
+          course_id: string
+          created_at: string
+          id: string
+          issued_at: string
+          pdf_url: string | null
+          user_id: string
+        }
+        Insert: {
+          certificate_number: string
+          course_id: string
+          created_at?: string
+          id?: string
+          issued_at?: string
+          pdf_url?: string | null
+          user_id: string
+        }
+        Update: {
+          certificate_number?: string
+          course_id?: string
+          created_at?: string
+          id?: string
+          issued_at?: string
+          pdf_url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_certificates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_lesson_progress: {
         Row: {
           completed: boolean
@@ -703,6 +744,11 @@ export type Database = {
       }
     }
     Functions: {
+      check_course_completion: {
+        Args: { p_course_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      generate_certificate_number: { Args: never; Returns: string }
       grade_quiz: {
         Args: { p_answers: Json; p_quiz_id: string }
         Returns: {
@@ -718,6 +764,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      issue_certificate: {
+        Args: { p_course_id: string; p_user_id: string }
+        Returns: string
       }
     }
     Enums: {

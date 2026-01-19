@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Bell, LogOut, GraduationCap, Target, Clock, Calendar, FileText, Award, ChevronDown, User, Users, BookMarked } from 'lucide-react';
+import { BookOpen, Bell, LogOut, GraduationCap, Target, Clock, Calendar, FileText, Award, ChevronDown, User, Users, BookMarked, Medal } from 'lucide-react';
 import logoImage from '@/assets/logo-progressia.png';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -97,6 +97,12 @@ export const Navbar = () => {
                   <Link to="/rewards" className="cursor-pointer">
                     <Award className="h-4 w-4 mr-2" />
                     Penghargaan
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/certificates" className="cursor-pointer">
+                    <Medal className="h-4 w-4 mr-2" />
+                    Sertifikat
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
